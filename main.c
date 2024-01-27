@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -8,7 +9,8 @@
 void DrawSingleBlock(int color, Vector2 coordinates) {
     Color main_color = BLACK;
     Color accent_color = BLACK;
-    Rectangle rectangle = (Rectangle){coordinates.x * 20, coordinates.y * 20, 20, 20};
+    Rectangle rectangle =
+        (Rectangle){coordinates.x * 20, coordinates.y * 20, 20, 20};
 
     switch (color) {
         case 0:
@@ -104,15 +106,33 @@ typedef struct Tetromino {
     int color;
     bool isVisible;
 } Tetromino;
-void DrawTetromino(Tetromino* tetromino, Vector2 board_zero_coordinates) {
+void DrawTetromino(Tetromino* tetromino) {
     for (int i = 0; i < 4; i++) {
         Vector2 coordinates = tetromino->blocks[i];
-        float x = coordinates.x + board_zero_coordinates.x;
-        float y = coordinates.y + board_zero_coordinates.y;
+        float x = coordinates.x + 1;
+        float y = coordinates.y + 9;
         int color = tetromino->color;
 
         DrawSingleBlock(color, (Vector2){x, y});
     }
+}
+void MoveTetromino(Tetromino* tetromino, Vector2 offset) {
+    Vector2* new_blocks_location = malloc(4 * sizeof(Vector2));
+    bool can_move = true;
+    for (int i = 0; i < 4; i++) {
+        new_blocks_location[i].x = tetromino->blocks[i].x + offset.x;
+        new_blocks_location[i].y = tetromino->blocks[i].y + offset.y;
+        if (new_blocks_location[i].y > 19) {
+            can_move = false;
+        }
+    }
+    if (can_move) {
+        for (int i = 0; i < 4; i++) {
+            tetromino->blocks[i].x = new_blocks_location[i].x;
+            tetromino->blocks[i].y = new_blocks_location[i].y;
+        }
+    }
+    free(new_blocks_location);
 }
 Tetromino CreateTetrominoI(int color) {
     struct Tetromino tetromino;
@@ -230,17 +250,18 @@ int main(void) {
     }
 
     InitWindow(screenWidth, screenHeight, "basic window");
-    SetTargetFPS(5);  // Set our game to run at 60 frames-per-second
+    SetTargetFPS(4);  // Set our game to run at 60 frames-per-second
     GuiSetFont(GetFontDefault());
     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
     int game_state = 0;
     Tetromino user_controlled_tetromino = CreateRandomTetromino();
-
     printf("[debug]\n");
     bool clear_row = true;
+
+    user_controlled_tetromino = CreateRandomTetromino();
     while (!WindowShouldClose())  // Detect window close button or ESC key
     {
-        user_controlled_tetromino = CreateRandomTetromino();
+        MoveTetromino(&user_controlled_tetromino, (Vector2){0, 1});
         // Update
         //----------------------------------------------------------------------------------
         //        for (int y = 0; y < 20; y++) {
@@ -292,7 +313,8 @@ int main(void) {
                         DrawRectangleLines(x * 20, y * 20, 20, 20, DARKGRAY);
                     }
                 }
-                if ((y >= 9 && y < 9 + board_height) && (x == 0 || x == board_width + 1 || x == 22)) {
+                if ((y >= 9 && y < 9 + board_height) &&
+                    (x == 0 || x == board_width + 1 || x == 22)) {
                     DrawSingleBlock(5, (Vector2){x, y});
                 }
                 if (y == 8 || y == 9 + board_height) {
@@ -312,7 +334,7 @@ int main(void) {
         DrawText("NEXT:", 13 * 20, 12 * 20, 20, LIGHTGRAY);
         DrawText("SCORE:", 13 * 20, 17 * 20, 20, LIGHTGRAY);
         DrawText("2137", 13 * 20, 18 * 20, 20, LIGHTGRAY);
-        DrawTetromino(&user_controlled_tetromino, (Vector2){18, 10});
+        DrawTetromino(&user_controlled_tetromino);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
