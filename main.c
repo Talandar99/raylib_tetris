@@ -33,6 +33,11 @@ void DrawSingleBlock(int color, Vector2 coordinates) {
             main_color = PURPLE;
             accent_color = VIOLET;
             break;
+        case 5:
+            main_color = WHITE;
+            accent_color = WHITE;
+            break;
+
         default:
             main_color = GRAY;
             accent_color = DARKGRAY;
@@ -104,7 +109,6 @@ typedef struct Tetromino {
     Vector2* blocks;
     Vector2 location;
     int color;
-    bool isVisible;
 } Tetromino;
 void DrawTetromino(Tetromino* tetromino) {
     for (int i = 0; i < 4; i++) {
@@ -115,6 +119,39 @@ void DrawTetromino(Tetromino* tetromino) {
 
         DrawSingleBlock(color, (Vector2){x, y});
     }
+}
+bool CanMoveTetrominoLeftSide(Tetromino* tetromino, int** board) {
+    bool can_move = true;
+    for (int i = 0; i < 4; i++) {
+        int x = tetromino->blocks[i].x;
+        int y = tetromino->blocks[i].y;
+        if (x < 1) {
+            can_move = false;
+        }
+    }
+    return can_move;
+}
+bool CanMoveTetrominoRightSide(Tetromino* tetromino, int** board) {
+    bool can_move = true;
+    for (int i = 0; i < 4; i++) {
+        int x = tetromino->blocks[i].x;
+        int y = tetromino->blocks[i].y;
+        if (x > 8) {
+            can_move = false;
+        }
+    }
+    return can_move;
+}
+bool CanMoveTetrominoDown(Tetromino* tetromino, int** board) {
+    bool can_move = true;
+    for (int i = 0; i < 4; i++) {
+        int x = tetromino->blocks[i].x;
+        int y = tetromino->blocks[i].y;
+        if (y + 1 > 19 || board[x][y + 1] > -1) {
+            can_move = false;
+        }
+    }
+    return can_move;
 }
 void MoveTetromino(Tetromino* tetromino, Vector2 offset) {
     Vector2* new_blocks_location = malloc(4 * sizeof(Vector2));
@@ -141,7 +178,7 @@ Tetromino CreateTetrominoI(int color) {
     blocks[1] = (Vector2){1, 1};
     blocks[2] = (Vector2){1, 2};
     blocks[3] = (Vector2){1, 3};
-    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color, true};
+    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color};
     return tetromino;
 }
 Tetromino CreateTetrominoL(int color) {
@@ -151,7 +188,7 @@ Tetromino CreateTetrominoL(int color) {
     blocks[1] = (Vector2){1, 1};
     blocks[2] = (Vector2){1, 2};
     blocks[3] = (Vector2){2, 2};
-    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color, true};
+    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color};
     return tetromino;
 }
 Tetromino CreateTetrominoJ(int color) {
@@ -161,7 +198,7 @@ Tetromino CreateTetrominoJ(int color) {
     blocks[1] = (Vector2){2, 1};
     blocks[2] = (Vector2){2, 2};
     blocks[3] = (Vector2){1, 2};
-    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color, true};
+    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color};
     return tetromino;
 }
 Tetromino CreateTetrominoO(int color) {
@@ -171,7 +208,7 @@ Tetromino CreateTetrominoO(int color) {
     blocks[1] = (Vector2){2, 2};
     blocks[2] = (Vector2){1, 2};
     blocks[3] = (Vector2){2, 1};
-    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color, true};
+    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color};
     return tetromino;
 }
 Tetromino CreateTetrominoT(int color) {
@@ -181,7 +218,7 @@ Tetromino CreateTetrominoT(int color) {
     blocks[1] = (Vector2){1, 1};
     blocks[2] = (Vector2){1, 2};
     blocks[3] = (Vector2){2, 1};
-    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color, true};
+    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color};
     return tetromino;
 }
 Tetromino CreateTetrominoS(int color) {
@@ -191,7 +228,7 @@ Tetromino CreateTetrominoS(int color) {
     blocks[1] = (Vector2){1, 1};
     blocks[2] = (Vector2){1, 2};
     blocks[3] = (Vector2){0, 2};
-    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color, true};
+    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color};
     return tetromino;
 }
 Tetromino CreateTetrominoZ(int color) {
@@ -201,7 +238,7 @@ Tetromino CreateTetrominoZ(int color) {
     blocks[1] = (Vector2){1, 1};
     blocks[2] = (Vector2){1, 2};
     blocks[3] = (Vector2){2, 2};
-    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color, true};
+    tetromino = (Tetromino){blocks, (Vector2){0, 0}, color};
     return tetromino;
 }
 Tetromino CreateRandomTetromino() {
@@ -235,6 +272,7 @@ Tetromino CreateRandomTetromino() {
     }
     return tetromino;
 }
+void AddTetrominoToBoard(Tetromino* tetromino, int** board) {}
 int main(void) {
     // Initialization
     const int screenWidth = 460;
@@ -242,7 +280,10 @@ int main(void) {
     const int board_height = 20;
     const int board_width = 10;
 
-    int board[board_width][board_height];
+    int** board = (int**)malloc(board_width * sizeof(int*));
+    for (int i = 0; i < board_width; i++) {
+        board[i] = (int*)malloc(board_height * sizeof(int));
+    }
     for (int y = 0; y < 20; y++) {
         for (int x = 0; x < 10; x++) {
             board[x][y] = -1;
@@ -250,7 +291,7 @@ int main(void) {
     }
 
     InitWindow(screenWidth, screenHeight, "basic window");
-    SetTargetFPS(4);  // Set our game to run at 60 frames-per-second
+    SetTargetFPS(5);  // Set our game to run at 60 frames-per-second
     GuiSetFont(GetFontDefault());
     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
     int game_state = 0;
@@ -261,42 +302,47 @@ int main(void) {
     user_controlled_tetromino = CreateRandomTetromino();
     while (!WindowShouldClose())  // Detect window close button or ESC key
     {
-        MoveTetromino(&user_controlled_tetromino, (Vector2){0, 1});
         // Update
         //----------------------------------------------------------------------------------
-        //        for (int y = 0; y < 20; y++) {
-        //            clear_row = true;
-        //            for (int x = 0; x < 10; x++) {
-        //                int c = board[x][19];
-        //                printf("x=%i|color=%i\n", x, c);
-        //                if (board[x][19] == -1) {
-        //                    clear_row = false;
-        //                }
-        //            }
-        //            if (clear_row == true) {
-        //                for (int x = 0; x < 10; x++) {
-        //                    board[x][19] = -1;
-        //                }
-        //                printf("clear_row=true\n");
-        //            } else {
-        //                printf("clear_row=false\n");
-        //            }
-        //        }
-        //        for (int y = 20 - 2; y >= 0; y--) {
-        //            for (int x = 0; x < 10; x++) {
-        //                int y_plus_one_color = board[x][y + 1];
-        //                int current_y_color = board[x][y];
-        //                if (current_y_color > -1) {
-        //                    printf("%i\n", current_y_color);
-        //                    printf("x=%i|y=%i\n", x, y);
-        //                    if (y_plus_one_color == -1) {
-        //                        board[x][y + 1] = current_y_color;
-        //                        board[x][y] = -1;
-        //                    }
-        //                }
-        //            }
-        //        }
-        // TODO: Update your variables here
+        Vector2 block_move = (Vector2){0, 1};
+        if (IsKeyDown(KEY_A)) {
+            if (CanMoveTetrominoLeftSide(&user_controlled_tetromino, board)) {
+                block_move.x = block_move.x - 1;
+            }
+        }
+        if (IsKeyDown(KEY_D)) {
+            if (CanMoveTetrominoRightSide(&user_controlled_tetromino, board)) {
+                block_move.x = block_move.x + 1;
+            }
+        }
+        if (CanMoveTetrominoDown(&user_controlled_tetromino, board)) {
+            MoveTetromino(&user_controlled_tetromino, block_move);
+        } else {
+            for (int i = 0; i < 4; i++) {
+                int block_x = user_controlled_tetromino.blocks[i].x +
+                              user_controlled_tetromino.location.x;
+                int block_y = user_controlled_tetromino.blocks[i].y +
+                              user_controlled_tetromino.location.y;
+                int color = user_controlled_tetromino.color;
+                board[block_x][block_y] = color;
+            }
+            user_controlled_tetromino = CreateRandomTetromino();
+        }
+        // Change row color if it's full
+        for (int y = 0; y < 20; y++) {
+            bool row_is_full = true;
+            for (int x = 0; x < 10; x++) {
+                if (board[x][y] == -1) {
+                    row_is_full = false;
+                }
+            }
+            if (row_is_full) {
+                for (int x = 0; x < 10; x++) {
+                    board[x][y] = 5;
+                }
+            }
+        }
+        // check if row is full
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
@@ -315,22 +361,20 @@ int main(void) {
                 }
                 if ((y >= 9 && y < 9 + board_height) &&
                     (x == 0 || x == board_width + 1 || x == 22)) {
-                    DrawSingleBlock(5, (Vector2){x, y});
+                    DrawSingleBlock(-1, (Vector2){x, y});
                 }
                 if (y == 8 || y == 9 + board_height) {
-                    DrawSingleBlock(5, (Vector2){x, y});
+                    DrawSingleBlock(-1, (Vector2){x, y});
                 }
             }
         }
-
-        // for (int y = 0; y < 20; y++) {
-        //     for (int x = 0; x < 10; x++) {
-        //         int color = board[x][y];
-        //         if (color > -1) {
-        //             DrawSingleBlock(color, (Vector2){x + 1, y + 9});
-        //         }
-        //     }
-        // }
+        for (int x = 0; x < board_width; x++) {
+            for (int y = 0; y < board_height; y++) {
+                if (board[x][y] > -1) {
+                    DrawSingleBlock(board[x][y], (Vector2){x + 1, y + 9});
+                }
+            }
+        }
         DrawText("NEXT:", 13 * 20, 12 * 20, 20, LIGHTGRAY);
         DrawText("SCORE:", 13 * 20, 17 * 20, 20, LIGHTGRAY);
         DrawText("2137", 13 * 20, 18 * 20, 20, LIGHTGRAY);
