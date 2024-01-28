@@ -153,6 +153,13 @@ bool CanMoveTetrominoDown(Tetromino* tetromino, int** board) {
     }
     return can_move;
 }
+void RotateTetromino(Tetromino* tetromino) {
+    for (int i = 0; i < 4; i++) {
+        int temp = tetromino->blocks[i].x;
+        tetromino->blocks[i].x = tetromino->blocks[i].y;
+        tetromino->blocks[i].y = temp;
+    }
+}
 void MoveTetromino(Tetromino* tetromino, Vector2 offset) {
     Vector2* new_blocks_location = malloc(4 * sizeof(Vector2));
     bool can_move = true;
@@ -224,10 +231,10 @@ Tetromino CreateTetrominoT(int color) {
 Tetromino CreateTetrominoS(int color) {
     struct Tetromino tetromino;
     Vector2* blocks = malloc(4 * sizeof(Vector2));
-    blocks[0] = (Vector2){2, 1};
-    blocks[1] = (Vector2){1, 1};
-    blocks[2] = (Vector2){1, 2};
-    blocks[3] = (Vector2){0, 2};
+    blocks[0] = (Vector2){3, 1};
+    blocks[1] = (Vector2){2, 1};
+    blocks[2] = (Vector2){2, 2};
+    blocks[3] = (Vector2){1, 2};
     tetromino = (Tetromino){blocks, (Vector2){0, 0}, color};
     return tetromino;
 }
@@ -272,14 +279,13 @@ Tetromino CreateRandomTetromino() {
     }
     return tetromino;
 }
-void AddTetrominoToBoard(Tetromino* tetromino, int** board) {}
 int main(void) {
     // Initialization
     const int screenWidth = 460;
     const int screenHeight = 600;
     const int board_height = 20;
     const int board_width = 10;
-
+    int frame = 0;
     int** board = (int**)malloc(board_width * sizeof(int*));
     for (int i = 0; i < board_width; i++) {
         board[i] = (int*)malloc(board_height * sizeof(int));
@@ -291,7 +297,7 @@ int main(void) {
     }
 
     InitWindow(screenWidth, screenHeight, "basic window");
-    SetTargetFPS(5);  // Set our game to run at 60 frames-per-second
+    SetTargetFPS(15);  // Set our game to run at 60 frames-per-second
     GuiSetFont(GetFontDefault());
     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
     int game_state = 0;
@@ -302,9 +308,15 @@ int main(void) {
     user_controlled_tetromino = CreateRandomTetromino();
     while (!WindowShouldClose())  // Detect window close button or ESC key
     {
+        if (frame >= 60) {
+            frame = 0;
+        }
         // Update
         //----------------------------------------------------------------------------------
-        Vector2 block_move = (Vector2){0, 1};
+        Vector2 block_move = (Vector2){0, 0};
+        if (frame % 4 == 0) {
+            block_move.y = block_move.y + 1;
+        }
         if (IsKeyDown(KEY_A)) {
             if (CanMoveTetrominoLeftSide(&user_controlled_tetromino, board)) {
                 block_move.x = block_move.x - 1;
@@ -314,6 +326,9 @@ int main(void) {
             if (CanMoveTetrominoRightSide(&user_controlled_tetromino, board)) {
                 block_move.x = block_move.x + 1;
             }
+        }
+        if (IsKeyDown(KEY_W)) {
+            RotateTetromino(&user_controlled_tetromino);
         }
         if (CanMoveTetrominoDown(&user_controlled_tetromino, board)) {
             MoveTetromino(&user_controlled_tetromino, block_move);
@@ -342,7 +357,7 @@ int main(void) {
                 }
             }
         }
-        // check if row is full
+        frame++;
         //----------------------------------------------------------------------------------
         // Draw
         //----------------------------------------------------------------------------------
