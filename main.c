@@ -321,11 +321,14 @@ int main(void) {
     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
     int game_state = 0;
     Tetromino user_controlled_tetromino = CreateRandomTetromino();
+    Tetromino next_tetromino = CreateRandomTetromino();
     printf("[debug]\n");
     bool clear_row = true;
 
     user_controlled_tetromino = CreateRandomTetromino();
-    user_controlled_tetromino = CreateTetrominoT(4);
+    next_tetromino = CreateRandomTetromino();
+    next_tetromino.location.x = 15;
+    next_tetromino.location.y = 1;
     while (!WindowShouldClose())  // Detect window close button or ESC key
     {
         if (frame >= 60) {
@@ -361,7 +364,12 @@ int main(void) {
                 int color = user_controlled_tetromino.color;
                 board[block_x][block_y] = color;
             }
-            user_controlled_tetromino = CreateRandomTetromino();
+            next_tetromino.location.x = 3;
+            next_tetromino.location.y = 0;
+            user_controlled_tetromino = next_tetromino;
+            next_tetromino = CreateRandomTetromino();
+            next_tetromino.location.x = 15;
+            next_tetromino.location.y = 1;
         }
         // Change row color if it's full
         for (int y = 0; y < 20; y++) {
@@ -420,6 +428,7 @@ int main(void) {
         DrawText("SCORE:", 13 * 20, 17 * 20, 20, LIGHTGRAY);
         DrawText(TextFormat("%i", score), 13 * 20, 18 * 20, 20, LIGHTGRAY);
         DrawTetromino(&user_controlled_tetromino);
+        DrawTetromino(&next_tetromino);
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
