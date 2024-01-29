@@ -316,7 +316,7 @@ int main(void) {
     }
 
     InitWindow(screenWidth, screenHeight, "basic window");
-    SetTargetFPS(15);  // Set our game to run at 60 frames-per-second
+    SetTargetFPS(13);  // Set our game to run at 60 frames-per-second
     GuiSetFont(GetFontDefault());
     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
     int game_state = 0;
@@ -325,6 +325,9 @@ int main(void) {
     printf("[debug]\n");
     bool clear_row = true;
 
+    bool gui_button_A = false;
+    bool gui_button_W = false;
+    bool gui_button_D = false;
     user_controlled_tetromino = CreateRandomTetromino();
     next_tetromino = CreateRandomTetromino();
     next_tetromino.location.x = 15;
@@ -340,17 +343,17 @@ int main(void) {
         if (frame % 4 == 0) {
             block_move.y = block_move.y + 1;
         }
-        if (IsKeyDown(KEY_A)) {
+        if (IsKeyDown(KEY_A) || gui_button_A) {
             if (CanMoveTetrominoLeftSide(&user_controlled_tetromino, board)) {
                 block_move.x = block_move.x - 1;
             }
         }
-        if (IsKeyDown(KEY_D)) {
+        if (IsKeyDown(KEY_D) || gui_button_D) {
             if (CanMoveTetrominoRightSide(&user_controlled_tetromino, board)) {
                 block_move.x = block_move.x + 1;
             }
         }
-        if (IsKeyPressed(KEY_W)) {
+        if (IsKeyPressed(KEY_W) || gui_button_W) {
             if (CanRotateTetromino(&user_controlled_tetromino, board)) {
                 RotateTetromino(&user_controlled_tetromino);
             }
@@ -429,6 +432,13 @@ int main(void) {
         DrawText(TextFormat("%i", score), 13 * 20, 18 * 20, 20, LIGHTGRAY);
         DrawTetromino(&user_controlled_tetromino);
         DrawTetromino(&next_tetromino);
+        Rectangle button_rectangle_A = (Rectangle){(12 * 20), (26 * 20), 60, 60};
+        Rectangle button_rectangle_W = (Rectangle){(15 * 20), (26 * 20), 80, 60};
+        Rectangle button_rectangle_D = (Rectangle){(19 * 20), (26 * 20), 60, 60};
+
+        gui_button_A = GuiButton(button_rectangle_A, "A");
+        gui_button_W = GuiButton(button_rectangle_W, "W");
+        gui_button_D = GuiButton(button_rectangle_D, "D");
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
