@@ -303,6 +303,7 @@ int main(void) {
     const int screenHeight = 600;
     const int board_height = 20;
     const int board_width = 10;
+    int score = 0;
     int frame = 0;
     int** board = (int**)malloc(board_width * sizeof(int*));
     for (int i = 0; i < board_width; i++) {
@@ -371,6 +372,7 @@ int main(void) {
                 }
             }
             if (row_is_full) {
+                score = score + 100;
                 for (int x = 0; x < 10; x++) {
                     board[x][y] = -1;
                 }
@@ -416,7 +418,7 @@ int main(void) {
         }
         DrawText("NEXT:", 13 * 20, 12 * 20, 20, LIGHTGRAY);
         DrawText("SCORE:", 13 * 20, 17 * 20, 20, LIGHTGRAY);
-        DrawText("2137", 13 * 20, 18 * 20, 20, LIGHTGRAY);
+        DrawText(TextFormat("%i", score), 13 * 20, 18 * 20, 20, LIGHTGRAY);
         DrawTetromino(&user_controlled_tetromino);
         EndDrawing();
         //----------------------------------------------------------------------------------
