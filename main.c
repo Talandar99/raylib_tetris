@@ -9,8 +9,7 @@
 void DrawSingleBlock(int color, Vector2 coordinates) {
     Color main_color = BLACK;
     Color accent_color = BLACK;
-    Rectangle rectangle =
-        (Rectangle){coordinates.x * 20, coordinates.y * 20, 20, 20};
+    Rectangle rectangle = (Rectangle){coordinates.x * 20, coordinates.y * 20, 20, 20};
 
     switch (color) {
         case 0:
@@ -113,8 +112,8 @@ typedef struct Tetromino {
 void DrawTetromino(Tetromino* tetromino) {
     for (int i = 0; i < 4; i++) {
         Vector2 coordinates = tetromino->blocks[i];
-        float x = coordinates.x + 1;
-        float y = coordinates.y + 9;
+        float x = coordinates.x + 1 + tetromino->location.x;
+        float y = coordinates.y + 9 + tetromino->location.y;
         int color = tetromino->color;
 
         DrawSingleBlock(color, (Vector2){x, y});
@@ -123,9 +122,9 @@ void DrawTetromino(Tetromino* tetromino) {
 bool CanMoveTetrominoLeftSide(Tetromino* tetromino, int** board) {
     bool can_move = true;
     for (int i = 0; i < 4; i++) {
-        int x = tetromino->blocks[i].x;
-        int y = tetromino->blocks[i].y;
-        if (x < 1) {
+        int x = tetromino->blocks[i].x + tetromino->location.x;
+        int y = tetromino->blocks[i].y + tetromino->location.y;
+        if (x < 1 || board[x - 1][y] > -1) {
             can_move = false;
         }
     }
@@ -134,9 +133,9 @@ bool CanMoveTetrominoLeftSide(Tetromino* tetromino, int** board) {
 bool CanMoveTetrominoRightSide(Tetromino* tetromino, int** board) {
     bool can_move = true;
     for (int i = 0; i < 4; i++) {
-        int x = tetromino->blocks[i].x;
-        int y = tetromino->blocks[i].y;
-        if (x > 8) {
+        int x = tetromino->blocks[i].x + tetromino->location.x;
+        int y = tetromino->blocks[i].y + tetromino->location.y;
+        if (x > 8 || board[x + 1][y] > -1) {
             can_move = false;
         }
     }
@@ -145,19 +144,40 @@ bool CanMoveTetrominoRightSide(Tetromino* tetromino, int** board) {
 bool CanMoveTetrominoDown(Tetromino* tetromino, int** board) {
     bool can_move = true;
     for (int i = 0; i < 4; i++) {
-        int x = tetromino->blocks[i].x;
-        int y = tetromino->blocks[i].y;
+        int x = tetromino->blocks[i].x + tetromino->location.x;
+        int y = tetromino->blocks[i].y + tetromino->location.y;
         if (y + 1 > 19 || board[x][y + 1] > -1) {
             can_move = false;
         }
     }
     return can_move;
 }
+bool CanRotateTetromino(Tetromino* tetromino, int** board) {
+    bool can_rotate = true;
+    for (int i = 0; i < 4; i++) {
+        int temp = tetromino->blocks[i].x;
+        int x = tetromino->blocks[i].y + tetromino->location.x;
+        int y = 3 - temp + tetromino->location.y;
+        if (x > 8) {
+            can_rotate = false;
+        }
+        if (x < 1) {
+            can_rotate = false;
+        }
+        if (y + 1 > 19 || board[x][y + 1] > -1) {
+            can_rotate = false;
+        }
+    }
+    return can_rotate;
+}
 void RotateTetromino(Tetromino* tetromino) {
+    float location_x = tetromino->location.x;
+    float location_y = tetromino->location.y;
+
     for (int i = 0; i < 4; i++) {
         int temp = tetromino->blocks[i].x;
         tetromino->blocks[i].x = tetromino->blocks[i].y;
-        tetromino->blocks[i].y = temp;
+        tetromino->blocks[i].y = 3 - temp;
     }
 }
 void MoveTetromino(Tetromino* tetromino, Vector2 offset) {
@@ -171,10 +191,8 @@ void MoveTetromino(Tetromino* tetromino, Vector2 offset) {
         }
     }
     if (can_move) {
-        for (int i = 0; i < 4; i++) {
-            tetromino->blocks[i].x = new_blocks_location[i].x;
-            tetromino->blocks[i].y = new_blocks_location[i].y;
-        }
+        tetromino->location.x = tetromino->location.x + offset.x;
+        tetromino->location.y = tetromino->location.y + offset.y;
     }
     free(new_blocks_location);
 }
@@ -306,6 +324,7 @@ int main(void) {
     bool clear_row = true;
 
     user_controlled_tetromino = CreateRandomTetromino();
+    user_controlled_tetromino = CreateTetrominoT(4);
     while (!WindowShouldClose())  // Detect window close button or ESC key
     {
         if (frame >= 60) {
@@ -327,17 +346,17 @@ int main(void) {
                 block_move.x = block_move.x + 1;
             }
         }
-        if (IsKeyDown(KEY_W)) {
-            RotateTetromino(&user_controlled_tetromino);
+        if (IsKeyPressed(KEY_W)) {
+            if (CanRotateTetromino(&user_controlled_tetromino, board)) {
+                RotateTetromino(&user_controlled_tetromino);
+            }
         }
         if (CanMoveTetrominoDown(&user_controlled_tetromino, board)) {
             MoveTetromino(&user_controlled_tetromino, block_move);
         } else {
             for (int i = 0; i < 4; i++) {
-                int block_x = user_controlled_tetromino.blocks[i].x +
-                              user_controlled_tetromino.location.x;
-                int block_y = user_controlled_tetromino.blocks[i].y +
-                              user_controlled_tetromino.location.y;
+                int block_x = user_controlled_tetromino.blocks[i].x + user_controlled_tetromino.location.x;
+                int block_y = user_controlled_tetromino.blocks[i].y + user_controlled_tetromino.location.y;
                 int color = user_controlled_tetromino.color;
                 board[block_x][block_y] = color;
             }
@@ -353,10 +372,16 @@ int main(void) {
             }
             if (row_is_full) {
                 for (int x = 0; x < 10; x++) {
-                    board[x][y] = 5;
+                    board[x][y] = -1;
+                }
+                for (int y2 = y; y2 > 1; y2--) {
+                    for (int x = 0; x < 10; x++) {
+                        board[x][y2] = board[x][y2 - 1];
+                    }
                 }
             }
         }
+
         frame++;
         //----------------------------------------------------------------------------------
         // Draw
@@ -374,8 +399,7 @@ int main(void) {
                         DrawRectangleLines(x * 20, y * 20, 20, 20, DARKGRAY);
                     }
                 }
-                if ((y >= 9 && y < 9 + board_height) &&
-                    (x == 0 || x == board_width + 1 || x == 22)) {
+                if ((y >= 9 && y < 9 + board_height) && (x == 0 || x == board_width + 1 || x == 22)) {
                     DrawSingleBlock(-1, (Vector2){x, y});
                 }
                 if (y == 8 || y == 9 + board_height) {
