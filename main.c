@@ -394,6 +394,20 @@ int main(void) {
                 }
             }
         }
+        bool board_is_full = false;
+        for (int x = 0; x < 10; x++) {
+            if (board[x][0] != -1) {
+                board_is_full = true;
+            }
+        }
+        if (board_is_full) {
+            for (int y = 0; y < 20; y++) {
+                for (int x = 0; x < 10; x++) {
+                    board[x][y] = -1;
+                    score = 0;
+                }
+            }
+        }
 
         frame++;
         //----------------------------------------------------------------------------------
