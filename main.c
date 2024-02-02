@@ -328,7 +328,11 @@ int main(void) {
     bool gui_button_A = false;
     bool gui_button_W = false;
     bool gui_button_D = false;
+    bool board_is_full = false;
+    bool restart_button = false;
     user_controlled_tetromino = CreateRandomTetromino();
+    user_controlled_tetromino.location.x = 3;
+    user_controlled_tetromino.location.y = 0;
     next_tetromino = CreateRandomTetromino();
     next_tetromino.location.x = 15;
     next_tetromino.location.y = 1;
@@ -340,8 +344,10 @@ int main(void) {
         // Update
         //----------------------------------------------------------------------------------
         Vector2 block_move = (Vector2){0, 0};
-        if (frame % 4 == 0) {
-            block_move.y = block_move.y + 1;
+        if (!board_is_full) {
+            if (frame % 4 == 0) {
+                block_move.y = block_move.y + 1;
+            }
         }
         if (IsKeyDown(KEY_A) || gui_button_A) {
             if (CanMoveTetrominoLeftSide(&user_controlled_tetromino, board)) {
@@ -358,21 +364,32 @@ int main(void) {
                 RotateTetromino(&user_controlled_tetromino);
             }
         }
-        if (CanMoveTetrominoDown(&user_controlled_tetromino, board)) {
-            MoveTetromino(&user_controlled_tetromino, block_move);
-        } else {
-            for (int i = 0; i < 4; i++) {
-                int block_x = user_controlled_tetromino.blocks[i].x + user_controlled_tetromino.location.x;
-                int block_y = user_controlled_tetromino.blocks[i].y + user_controlled_tetromino.location.y;
-                int color = user_controlled_tetromino.color;
-                board[block_x][block_y] = color;
+        if (IsKeyPressed(KEY_SPACE) || restart_button) {
+            for (int y = 0; y < 20; y++) {
+                for (int x = 0; x < 10; x++) {
+                    board[x][y] = -1;
+                    score = 0;
+                    board_is_full = false;
+                }
             }
-            next_tetromino.location.x = 3;
-            next_tetromino.location.y = 0;
-            user_controlled_tetromino = next_tetromino;
-            next_tetromino = CreateRandomTetromino();
-            next_tetromino.location.x = 15;
-            next_tetromino.location.y = 1;
+        }
+        if (!board_is_full) {
+            if (CanMoveTetrominoDown(&user_controlled_tetromino, board)) {
+                MoveTetromino(&user_controlled_tetromino, block_move);
+            } else {
+                for (int i = 0; i < 4; i++) {
+                    int block_x = user_controlled_tetromino.blocks[i].x + user_controlled_tetromino.location.x;
+                    int block_y = user_controlled_tetromino.blocks[i].y + user_controlled_tetromino.location.y;
+                    int color = user_controlled_tetromino.color;
+                    board[block_x][block_y] = color;
+                }
+                next_tetromino.location.x = 3;
+                next_tetromino.location.y = 0;
+                user_controlled_tetromino = next_tetromino;
+                next_tetromino = CreateRandomTetromino();
+                next_tetromino.location.x = 15;
+                next_tetromino.location.y = 1;
+            }
         }
         // Change row color if it's full
         for (int y = 0; y < 20; y++) {
@@ -394,18 +411,9 @@ int main(void) {
                 }
             }
         }
-        bool board_is_full = false;
         for (int x = 0; x < 10; x++) {
             if (board[x][0] != -1) {
                 board_is_full = true;
-            }
-        }
-        if (board_is_full) {
-            for (int y = 0; y < 20; y++) {
-                for (int x = 0; x < 10; x++) {
-                    board[x][y] = -1;
-                    score = 0;
-                }
             }
         }
 
@@ -434,18 +442,23 @@ int main(void) {
                 }
             }
         }
-        for (int x = 0; x < board_width; x++) {
-            for (int y = 0; y < board_height; y++) {
-                if (board[x][y] > -1) {
-                    DrawSingleBlock(board[x][y], (Vector2){x + 1, y + 9});
+        if (!board_is_full) {
+            for (int x = 0; x < board_width; x++) {
+                for (int y = 0; y < board_height; y++) {
+                    if (board[x][y] > -1) {
+                        DrawSingleBlock(board[x][y], (Vector2){x + 1, y + 9});
+                    }
                 }
             }
+            DrawTetromino(&user_controlled_tetromino);
+            DrawTetromino(&next_tetromino);
+        } else {
+            Rectangle restart_button_rectangle = (Rectangle){(2 * 20), (16 * 20), 160, 60};
+            restart_button = GuiButton(restart_button_rectangle, "SPACE");
         }
         DrawText("NEXT:", 13 * 20, 12 * 20, 20, LIGHTGRAY);
         DrawText("SCORE:", 13 * 20, 17 * 20, 20, LIGHTGRAY);
         DrawText(TextFormat("%i", score), 13 * 20, 18 * 20, 20, LIGHTGRAY);
-        DrawTetromino(&user_controlled_tetromino);
-        DrawTetromino(&next_tetromino);
         Rectangle button_rectangle_A = (Rectangle){(12 * 20), (26 * 20), 60, 60};
         Rectangle button_rectangle_W = (Rectangle){(15 * 20), (26 * 20), 80, 60};
         Rectangle button_rectangle_D = (Rectangle){(19 * 20), (26 * 20), 60, 60};
