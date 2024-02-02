@@ -316,7 +316,7 @@ int main(void) {
     }
 
     InitWindow(screenWidth, screenHeight, "basic window");
-    SetTargetFPS(13);  // Set our game to run at 60 frames-per-second
+    SetTargetFPS(60);  // Set our game to run at 60 frames-per-second
     GuiSetFont(GetFontDefault());
     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
     int game_state = 0;
@@ -328,7 +328,7 @@ int main(void) {
     bool gui_button_A = false;
     bool gui_button_W = false;
     bool gui_button_D = false;
-    bool board_is_full = false;
+    bool board_is_full = true;
     bool restart_button = false;
     user_controlled_tetromino = CreateRandomTetromino();
     user_controlled_tetromino.location.x = 3;
@@ -336,6 +336,8 @@ int main(void) {
     next_tetromino = CreateRandomTetromino();
     next_tetromino.location.x = 15;
     next_tetromino.location.y = 1;
+    int cleared_rows = 0;
+
     while (!WindowShouldClose())  // Detect window close button or ESC key
     {
         if (frame >= 60) {
@@ -345,16 +347,16 @@ int main(void) {
         //----------------------------------------------------------------------------------
         Vector2 block_move = (Vector2){0, 0};
         if (!board_is_full) {
-            if (frame % 4 == 0) {
+            if (frame % 15 == 0) {
                 block_move.y = block_move.y + 1;
             }
         }
-        if (IsKeyDown(KEY_A) || gui_button_A) {
+        if (IsKeyPressed(KEY_A) || gui_button_A) {
             if (CanMoveTetrominoLeftSide(&user_controlled_tetromino, board)) {
                 block_move.x = block_move.x - 1;
             }
         }
-        if (IsKeyDown(KEY_D) || gui_button_D) {
+        if (IsKeyPressed(KEY_D) || gui_button_D) {
             if (CanMoveTetrominoRightSide(&user_controlled_tetromino, board)) {
                 block_move.x = block_move.x + 1;
             }
@@ -392,6 +394,7 @@ int main(void) {
             }
         }
         // Change row color if it's full
+        cleared_rows = 0;
         for (int y = 0; y < 20; y++) {
             bool row_is_full = true;
             for (int x = 0; x < 10; x++) {
@@ -400,7 +403,7 @@ int main(void) {
                 }
             }
             if (row_is_full) {
-                score = score + 100;
+                cleared_rows++;
                 for (int x = 0; x < 10; x++) {
                     board[x][y] = -1;
                 }
@@ -410,6 +413,9 @@ int main(void) {
                     }
                 }
             }
+        }
+        if (cleared_rows > 0) {
+            score = score + 100 * cleared_rows * cleared_rows;
         }
         for (int x = 0; x < 10; x++) {
             if (board[x][0] != -1) {
