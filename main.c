@@ -351,19 +351,22 @@ int main(void) {
                 block_move.y = block_move.y + 1;
             }
         }
+        if (IsKeyPressed(KEY_W) || gui_button_W) {
+            if (CanRotateTetromino(&user_controlled_tetromino, board)) {
+                RotateTetromino(&user_controlled_tetromino);
+            }
+        }
         if (IsKeyPressed(KEY_A) || gui_button_A) {
             if (CanMoveTetrominoLeftSide(&user_controlled_tetromino, board)) {
                 block_move.x = block_move.x - 1;
             }
         }
+        if (IsKeyPressed(KEY_S) || gui_button_A) {
+            block_move.y = block_move.y + 1;
+        }
         if (IsKeyPressed(KEY_D) || gui_button_D) {
             if (CanMoveTetrominoRightSide(&user_controlled_tetromino, board)) {
                 block_move.x = block_move.x + 1;
-            }
-        }
-        if (IsKeyPressed(KEY_W) || gui_button_W) {
-            if (CanRotateTetromino(&user_controlled_tetromino, board)) {
-                RotateTetromino(&user_controlled_tetromino);
             }
         }
         if (IsKeyPressed(KEY_SPACE) || restart_button) {
@@ -389,7 +392,7 @@ int main(void) {
                 next_tetromino.location.y = 0;
                 user_controlled_tetromino = next_tetromino;
                 next_tetromino = CreateRandomTetromino();
-                next_tetromino.location.x = 15;
+                next_tetromino.location.x = 16;
                 next_tetromino.location.y = 1;
             }
         }
