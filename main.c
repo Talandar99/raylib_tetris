@@ -315,8 +315,8 @@ int main(void) {
         }
     }
 
-    InitWindow(screenWidth, screenHeight, "basic window");
-    SetTargetFPS(60);  // Set our game to run at 60 frames-per-second
+    InitWindow(screenWidth, screenHeight, "Tetris");
+    SetTargetFPS(120);  // Set our game to run at 60 frames-per-second
     GuiSetFont(GetFontDefault());
     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
     int game_state = 0;
@@ -325,8 +325,9 @@ int main(void) {
     printf("[debug]\n");
     bool clear_row = true;
 
-    bool gui_button_A = false;
     bool gui_button_W = false;
+    bool gui_button_A = false;
+    bool gui_button_S = false;
     bool gui_button_D = false;
     bool board_is_full = true;
     bool restart_button = false;
@@ -337,17 +338,25 @@ int main(void) {
     next_tetromino.location.x = 15;
     next_tetromino.location.y = 1;
     int cleared_rows = 0;
+    int speed = 60;
 
     while (!WindowShouldClose())  // Detect window close button or ESC key
     {
-        if (frame >= 60) {
+        if (frame >= 120) {
             frame = 0;
+        }
+        if (score >= 10000) {
+            speed = 20;
+        } else if (score >= 5000) {
+            speed = 30;
+        } else if (score >= 2500) {
+            speed = 40;
         }
         // Update
         //----------------------------------------------------------------------------------
         Vector2 block_move = (Vector2){0, 0};
         if (!board_is_full) {
-            if (frame % 15 == 0) {
+            if (frame % speed == 0) {
                 block_move.y = block_move.y + 1;
             }
         }
@@ -361,7 +370,7 @@ int main(void) {
                 block_move.x = block_move.x - 1;
             }
         }
-        if (IsKeyPressed(KEY_S) || gui_button_A) {
+        if (IsKeyPressed(KEY_S) || gui_button_S) {
             block_move.y = block_move.y + 1;
         }
         if (IsKeyPressed(KEY_D) || gui_button_D) {
@@ -440,7 +449,7 @@ int main(void) {
                 int y_offseted = y + board_height;
                 if (x >= 1 && x < 1 + board_width) {
                     if (y >= 9 && y < 9 + board_height) {
-                        DrawRectangleLines(x * 20, y * 20, 20, 20, DARKGRAY);
+                        // DrawRectangleLines(x * 20, y * 20, 20, 20, DARKGRAY);
                     }
                 }
                 if ((y >= 9 && y < 9 + board_height) && (x == 0 || x == board_width + 1 || x == 22)) {
@@ -461,19 +470,23 @@ int main(void) {
             }
             DrawTetromino(&user_controlled_tetromino);
             DrawTetromino(&next_tetromino);
+            Rectangle restart_button_rectangle = (Rectangle){(13 * 20), (20 * 20), 160, 40};
+            restart_button = GuiButton(restart_button_rectangle, "SPACE");
         } else {
-            Rectangle restart_button_rectangle = (Rectangle){(2 * 20), (16 * 20), 160, 60};
+            Rectangle restart_button_rectangle = (Rectangle){(2 * 20), (16 * 20), 160, 40};
             restart_button = GuiButton(restart_button_rectangle, "SPACE");
         }
         DrawText("NEXT:", 13 * 20, 12 * 20, 20, LIGHTGRAY);
         DrawText("SCORE:", 13 * 20, 17 * 20, 20, LIGHTGRAY);
         DrawText(TextFormat("%i", score), 13 * 20, 18 * 20, 20, LIGHTGRAY);
+        Rectangle button_rectangle_W = (Rectangle){(15 * 20), (23 * 20), 80, 60};
         Rectangle button_rectangle_A = (Rectangle){(12 * 20), (26 * 20), 60, 60};
-        Rectangle button_rectangle_W = (Rectangle){(15 * 20), (26 * 20), 80, 60};
+        Rectangle button_rectangle_S = (Rectangle){(15 * 20), (26 * 20), 80, 60};
         Rectangle button_rectangle_D = (Rectangle){(19 * 20), (26 * 20), 60, 60};
 
-        gui_button_A = GuiButton(button_rectangle_A, "A");
         gui_button_W = GuiButton(button_rectangle_W, "W");
+        gui_button_A = GuiButton(button_rectangle_A, "A");
+        gui_button_S = GuiButton(button_rectangle_S, "S");
         gui_button_D = GuiButton(button_rectangle_D, "D");
         EndDrawing();
         //----------------------------------------------------------------------------------
