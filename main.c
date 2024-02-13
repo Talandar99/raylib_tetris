@@ -171,8 +171,6 @@ bool CanRotateTetromino(Tetromino* tetromino, int** board) {
     return can_rotate;
 }
 void RotateTetromino(Tetromino* tetromino) {
-    float location_x = tetromino->location.x;
-    float location_y = tetromino->location.y;
 
     for (int i = 0; i < 4; i++) {
         int temp = tetromino->blocks[i].x;
@@ -319,12 +317,9 @@ int main(void) {
     SetTargetFPS(120);  // Set our game to run at 60 frames-per-second
     GuiSetFont(GetFontDefault());
     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
-    int game_state = 0;
     Tetromino user_controlled_tetromino = CreateRandomTetromino();
     Tetromino next_tetromino = CreateRandomTetromino();
     printf("[debug]\n");
-    bool clear_row = true;
-
     bool gui_button_W = false;
     bool gui_button_A = false;
     bool gui_button_S = false;
@@ -445,8 +440,6 @@ int main(void) {
         DrawTetrisText();
         for (int y = 0; y < 30; y++) {
             for (int x = 0; x < 23; x++) {
-                int x_offseted = x + board_height;
-                int y_offseted = y + board_height;
                 if (x >= 1 && x < 1 + board_width) {
                     if (y >= 9 && y < 9 + board_height) {
                         // DrawRectangleLines(x * 20, y * 20, 20, 20, DARKGRAY);
